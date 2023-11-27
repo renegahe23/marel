@@ -1,8 +1,8 @@
 <template>
     <div class="propiedades-container">
-      <header class="header">
+      <header class="header" @click="goHome">
         PROPIEDADES
-        <button @click="mostrarModalAgregarInmueble">Agregar Inmueble</button>
+        <button @click.stop="mostrarModalAgregarInmueble">Agregar Inmueble</button>
       </header>
       <div class="tarjetas-container">
   <div v-for="propiedad in propiedades" :key="propiedad.id" class="tarjeta">
@@ -101,7 +101,9 @@ export default defineComponent({
         }
       }
     },
-    
+    goHome() {
+      this.$router.push('/');
+    }
     // ...otros métodos...
   }
 });

@@ -1,6 +1,6 @@
 <template>
   <div class="inmuebles-container">
-    <header class="header">RENTAS</header>
+    <header class="header" @click="goHome">RENTAS</header>
     <div class="tarjetas-container">
       <div class="tarjeta" v-for="inmueble in inmuebles" :key="inmueble.id" @click="abrirModalGestionRentas(inmueble)">
         <h3>{{ inmueble.nombre }}</h3>
@@ -146,6 +146,11 @@ export default defineComponent({
       abrirModalPagos, 
       cerrarModalPagos 
     };
+  },
+  methods: {
+    goHome() {
+      this.$router.push('/');
+    }
   }
 });
 </script>

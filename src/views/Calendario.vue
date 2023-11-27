@@ -45,7 +45,13 @@
       };
   
       return { atributos, mostrarDetalles };
+    },
+    methods: {
+    goHome() {
+      this.$router.push('/');
     }
+  }
+    
   });
   </script>
   
