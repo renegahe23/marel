@@ -1,4 +1,5 @@
 <template>
+  <div v-if="isLoggedIn">
   <div class="inmuebles-container">
     <header class="header" @click="goHome">RENTAS</header>
     <div class="tarjetas-container">
@@ -9,7 +10,7 @@
         <p>Renta: ${{ inmueble.renta }}</p>
         <p>Tipo de Renta: {{ inmueble.tipoRenta }}</p>
       <!-- Botón para mostrar los pagos -->
-      <button @click.stop="abrirModalPagos(inmueble)">Ver Pagos</button>
+      <button class="boton-accion" @click.stop="abrirModalPagos(inmueble)">Ver Pagos</button>
     </div>
   </div>
 
@@ -49,17 +50,28 @@
     @cerrar="cerrarModalPagos"
   />
 
-  
+</div>
+<div v-else>
+    <p>Por favor, inicia sesión.</p>
+  </div>
 </template>
 <script>
 import ModalGestionRentas from '@/components/ModalGestionRentas.vue';
 import { defineComponent, ref, onMounted } from 'vue';
-import db from '@/firebase';
+import  { db }  from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import ModalPagos from '@/components/ModalPagos.vue';
+import { mapGetters } from 'vuex';
+import { useStore } from 'vuex';
 
 export default defineComponent({
   name: 'InmueblesPage',
+  computed: {
+    ...mapGetters(['user']),
+    isLoggedIn() {
+      return !!this.user;
+    }
+  },
   components: {
     ModalGestionRentas,
     ModalPagos
@@ -71,54 +83,64 @@ export default defineComponent({
     const faltantesDePago = ref([]);
     const mostrarModalPagos = ref(false);
     const inmuebleParaPagos = ref(null);
+    const store = useStore();
+
     onMounted(async () => {
       await cargarInmuebles();
       await cargarRentasPagadas();
       await identificarFaltantesDePago();
     });
     const cargarInmuebles = async () => {
+    try {
       const querySnapshot = await getDocs(collection(db, 'Inmuebles'));
-      inmuebles.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    };
-  
-
-    const cargarRentasPagadas = async () => {
-      const hoy = new Date();
-      const mesActual = String(hoy.getMonth() + 1);
-      const anoActual = hoy.getFullYear();
-
-      const rentasRef = collection(db, 'Rentas');
-      const querySnapshot = await getDocs(rentasRef);
-
-      rentasPagadas.value = querySnapshot.docs
+      const userEmail = store.getters.user.email; // Access user email using Vuex getter
+      inmuebles.value = querySnapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(renta => renta.mesPago === mesActual && renta.anoPago === anoActual);
-    };
+        .filter(propiedad => propiedad.usuarioId === userEmail);
+    } catch (error) {
+      console.error("Error al obtener los inmuebles: ", error);
+    }
+  };
 
-    const identificarFaltantesDePago = async () => {
-      const hoy = new Date();
-      const mesActual = String(hoy.getMonth() + 1); // Mes actual como string
-      const anoActual = hoy.getFullYear(); // Año actual
-      const diaActual = hoy.getDate(); // Día actual
+  const cargarRentasPagadas = async () => {
+  const hoy = new Date();
+  const mesActual = String(hoy.getMonth() + 1);
+  const anoActual = hoy.getFullYear();
+  const userEmail = store.getters.user.email; // Accede al email del usuario usando Vuex getter
 
-      const rentasRef = collection(db, 'Rentas');
-      const querySnapshot = await getDocs(rentasRef);
+  const rentasRef = collection(db, 'Rentas');
+  const querySnapshot = await getDocs(rentasRef);
 
-      inmuebles.value.forEach(inmueble => {
-        const haPagadoEsteMes = querySnapshot.docs.some(doc => {
-          const renta = doc.data();
-          return renta.idInmueble === inmueble.id && renta.mesPago === mesActual && renta.anoPago === anoActual;
-        });
+  rentasPagadas.value = querySnapshot.docs
+    .map(doc => ({ id: doc.id, ...doc.data() }))
+    .filter(renta => renta.mesPago === mesActual && renta.anoPago === anoActual && renta.usuarioEmail === userEmail);
+};
 
-        if (!haPagadoEsteMes && diaActual > inmueble.diaPagoRenta) {
-          faltantesDePago.value.push({
-            nombreInmueble: inmueble.nombre,
-            telefonoInquilino: inmueble.inquilinoTelefono, // Asegúrate de que este campo exista en los inmuebles
-            diaPagoRenta: inmueble.diaPagoRenta
-          });
-        }
+const identificarFaltantesDePago = async () => {
+  const hoy = new Date();
+  const mesActual = String(hoy.getMonth() + 1);
+  const anoActual = hoy.getFullYear();
+  const diaActual = hoy.getDate();
+  const userEmail = store.getters.user.email; // Accede al email del usuario usando Vuex getter
+
+  const rentasRef = collection(db, 'Rentas');
+  const querySnapshot = await getDocs(rentasRef);
+
+  inmuebles.value.forEach(inmueble => {
+    const haPagadoEsteMes = querySnapshot.docs.some(doc => {
+      const renta = doc.data();
+      return renta.idInmueble === inmueble.id && renta.mesPago === mesActual && renta.anoPago === anoActual && renta.usuarioEmail === userEmail;
+    });
+
+    if (!haPagadoEsteMes && diaActual > inmueble.diaPagoRenta) {
+      faltantesDePago.value.push({
+        nombreInmueble: inmueble.nombre,
+        telefonoInquilino: inmueble.inquilinoTelefono,
+        diaPagoRenta: inmueble.diaPagoRenta
       });
-    };
+    }
+  });
+};
 
     const abrirModalGestionRentas = (inmueble) => {
       inmuebleSeleccionado.value = inmueble;
@@ -235,5 +257,49 @@ export default defineComponent({
   border: none;
   cursor: pointer;
   color: red; /* O el color que prefieras */
+}
+
+/* Estilo base para botones */
+.boton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Estilo para botones de acción principal (Guardar, Agregar) */
+.boton-accion {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.boton-accion:hover {
+  background-color: #3e8e41;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para botones de cancelación o eliminación */
+.boton-cancelar, .boton-borrar {
+  background-color: #f44336;
+  color: white;
+}
+
+.boton-cancelar:hover, .boton-borrar:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para botones secundarios (Editar, Ver Pagos) */
+.boton-secundario {
+  background-color: #3498db;
+  color: white;
+}
+
+.boton-secundario:hover {
+  background-color: #2980b9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

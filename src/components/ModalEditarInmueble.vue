@@ -122,6 +122,7 @@
         </div>
 
         <!-- Campos de Gastos -->
+        <div v-if="inmuebleLocal.tipoRenta === 'AirBnb'">
         <div class="form-field">
           <label for="internet">Gasto de Internet</label>
           <input
@@ -170,6 +171,7 @@
             v-model.number="inmuebleLocal.gastos.seguro"
           />
         </div>
+      </div>
         <!-- Botones del Formulario -->
         <div class="form-buttons">
           <button type="submit">Guardar Cambios</button>
@@ -182,7 +184,7 @@
 
 <script>
 import { ref, watch } from "vue";
-import db from "@/firebase"; // Asegúrate de tener la referencia correcta a tu configuración de Firebase
+import  { db }  from '@/firebase'; // Asegúrate de tener la referencia correcta a tu configuración de Firebase
 import { doc, updateDoc } from "firebase/firestore";
 
 export default {

@@ -85,6 +85,14 @@
             <option value="Transferencia">Transferencia</option>
           </select>
         </div>
+        <div class="form-field">
+          <label for="numeroPredial">Número de Predial</label>
+          <input
+            type="text"
+            id="numeroPredial"
+            v-model="nuevoInmueble.numeroPredial"
+          />
+        </div>
         <!-- Agregar campos faltantes -->
 
         <div class="form-field">
@@ -120,7 +128,7 @@
             max="31"
           />
         </div>
-
+        <div v-if="nuevoInmueble.tipoRenta === 'AirBnb'">
         <!-- Campos de Gastos -->
         <div class="form-field">
           <label for="internet">Gasto de Internet</label>
@@ -170,7 +178,7 @@
             v-model.number="nuevoInmueble.gastos.seguro"
           />
         </div>
-
+      </div>
         <!-- Botones del Formulario -->
         <div class="form-buttons">
           <button type="submit">Guardar</button>
@@ -184,7 +192,7 @@
 <script>
 import { ref } from "vue";
 import { collection, addDoc } from "firebase/firestore";
-import db from "@/firebase"; // Asegúrate de que la ruta es correcta
+import { db, auth } from '@/firebase'; // Ensure correct import path
 
 export default {
   name: "ModalAgregarInmueble",
@@ -213,14 +221,23 @@ export default {
     });
 
     const agregarInmueble = async () => {
-      try {
-        await addDoc(collection(db, "Inmuebles"), nuevoInmueble.value);
-        console.log("Inmueble agregado con éxito");
-        emit("cerrar");
-      } catch (error) {
-        console.error("Error al agregar el inmueble: ", error);
-      }
-    };
+  try {
+    // Asegúrate de que el usuario esté autenticado
+    if (auth.currentUser) {
+      // Agrega el identificador del usuario al objeto nuevoInmueble
+      nuevoInmueble.value.usuarioId = auth.currentUser.email; // O auth.currentUser.uid para el ID numérico
+
+      await addDoc(collection(db, "Inmuebles"), nuevoInmueble.value);
+      console.log("Inmueble agregado con éxito");
+      emit("cerrar");
+      emit("inmueble-agregado");
+    } else {
+      console.error("No hay usuario autenticado");
+    }
+  } catch (error) {
+    console.error("Error al agregar el inmueble: ", error);
+  }
+};
 
     const cerrarModal = () => {
       emit("cerrar");

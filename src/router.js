@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from './views/HomePage.vue';
 import Propiedades from './views/Propiedades.vue'; // Asegúrate de que este archivo exista
-import Calendario from './views/Rentas.vue'; // Asegúrate de que este archivo exista
+import Rentas from './views/Rentas.vue'; // Asegúrate de que este archivo exista
 
 const routes = [
   {
@@ -13,8 +13,8 @@ const routes = [
     component: Propiedades
   },
   {
-    path: '/calendario',
-    component: Calendario
+    path: '/rentas',
+    component: Rentas
   }
   // Puedes añadir más rutas según sea necesario
 ];

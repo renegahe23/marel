@@ -15,7 +15,7 @@
   </template>
   
   <script>
-import db from '@/firebase';
+import  { db }  from '@/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default {
@@ -32,28 +32,33 @@ export default {
     cerrar() {
       this.$emit('cerrar');
     },
-    async cargarPagos() {
-      if (this.inmueble && this.inmueble.id) {
-        const pagosRef = collection(db, 'Rentas');
-        const q = query(pagosRef, where('idInmueble', '==', this.inmueble.id));
-
-        try {
-          const querySnapshot = await getDocs(q);
-          this.pagos = querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              nombreInmueble: data.nombreInmueble,
-              cantidadPago: data.cantidadPago,
-              fechaPago: `${data.diaPago}/${data.mesPago}/${data.anoPago}` // Formateamos la fecha
-            };
-          });
-        } catch (error) {
-          console.error('Error al cargar pagos:', error);
-          this.pagos = [];
-        }
-      }
+    // In ModalPagos.vue
+async cargarPagos() {
+  if (this.inmueble && this.inmueble.id) {
+    const pagosRef = collection(db, 'Rentas');
+    const q = query(pagosRef, where('idInmueble', '==', this.inmueble.id));
+    try {
+      const querySnapshot = await getDocs(q);
+      this.pagos = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          nombreInmueble: data.nombreInmueble,
+          cantidadPago: data.cantidadPago,
+          fechaPago: `${data.diaPago}/${data.mesPago}/${data.anoPago}` // Keep the formatted date
+        };
+      }).sort((a, b) => {
+        // Convert fechaPago to a Date object for comparison
+        const dateA = new Date(a.fechaPago.split('/').reverse().join('-'));
+        const dateB = new Date(b.fechaPago.split('/').reverse().join('-'));
+        return dateB - dateA; // Sort in descending order
+      });
+    } catch (error) {
+      console.error('Error al cargar pagos:', error);
+      this.pagos = [];
     }
+  }
+}
   },
   watch: {
     inmueble(newVal) {

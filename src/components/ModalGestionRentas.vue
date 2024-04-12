@@ -36,7 +36,8 @@
             v-model.number="renta.cantidadPago"
           />
         </div>
-        <button type="submit">Guardar</button>
+        
+<button type="submit" class="boton boton-accion">Guardar</button>
       </form>
     </div>
   </div>
@@ -45,7 +46,7 @@
 <script>
 import { defineComponent, ref } from "vue";
 import { collection, addDoc } from "firebase/firestore";
-import db from "@/firebase"; // Verifica que esta sea la ruta correcta
+import  { db, auth }  from '@/firebase'; // Verifica que esta sea la ruta correcta
 
 export default defineComponent({
   props: {
@@ -62,22 +63,32 @@ export default defineComponent({
       cantidadPago: props.inmueble.renta,
     });
 
-    const guardarRenta = async () => {
-      try {
-        await addDoc(collection(db, "Rentas"), {
-          idInmueble: props.inmueble.id,
-          nombreInmueble: props.inmueble.nombre,
-          diaPago: renta.value.diaPago,
-          mesPago: renta.value.mesPago,
-          anoPago: renta.value.anoPago, // Cambiado de 'añoPago' a 'anoPago'
-          cantidadPago: renta.value.cantidadPago,
-        });
-        console.log("Renta guardada con éxito");
-        emit("cerrarModal");
-      } catch (error) {
-        console.error("Error al guardar la renta: ", error);
-      }
-    };
+    // En ModalGestionRentas.vue o en el componente que maneje la lógica de guardar pagos
+
+const guardarRenta = async () => {
+  try {
+    // Verifica si hay un usuario autenticado
+    if (auth.currentUser) {
+      const usuarioEmail = auth.currentUser.email; // Obtiene el email del usuario autenticado
+
+      await addDoc(collection(db, "Rentas"), {
+        idInmueble: props.inmueble.id,
+        nombreInmueble: props.inmueble.nombre,
+        diaPago: renta.value.diaPago,
+        mesPago: renta.value.mesPago,
+        anoPago: renta.value.anoPago,
+        cantidadPago: renta.value.cantidadPago,
+        usuarioEmail: usuarioEmail, // Añade el email del usuario al objeto de pago
+      });
+      console.log("Renta guardada con éxito");
+      emit("cerrarModal");
+    } else {
+      console.error("No hay usuario autenticado");
+    }
+  } catch (error) {
+    console.error("Error al guardar la renta: ", error);
+  }
+};
 
     const cerrarModal = () => {
       emit("cerrarModal");
@@ -164,5 +175,48 @@ export default defineComponent({
 .form-buttons button[type="button"] {
   background-color: #f44336;
   color: white;
+}
+/* Estilo base para botones */
+.boton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Estilo para botones de acción principal (Guardar, Agregar) */
+.boton-accion {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.boton-accion:hover {
+  background-color: #3e8e41;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para botones de cancelación o eliminación */
+.boton-cancelar, .boton-borrar {
+  background-color: #f44336;
+  color: white;
+}
+
+.boton-cancelar:hover, .boton-borrar:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para botones secundarios (Editar, Ver Pagos) */
+.boton-secundario {
+  background-color: #3498db;
+  color: white;
+}
+
+.boton-secundario:hover {
+  background-color: #2980b9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>

@@ -1,36 +1,45 @@
 <template>
-  <div class="home-container">
-    <header class="header">
-      MAREL
-    </header>
+  <div v-if="isLoggedIn">
+    <div class="home-container">
+    
     <div class="image-container">
       <img src="@/edificios.png" alt="Edificios" class="home-image">
       <button class="nav-button" @click="goToPropiedades">Propiedades</button>
     </div>
     <div class="image-container">
       <img src="@/dollar-icon.png" alt="Icono de Dinero" class="home-image">
-      <button class="nav-button" @click="goToCalendario">Rentas</button>
-    </div>
+      <button class="nav-button" @click="goToRentas">Rentas</button>
+    </div></div>
+  </div>
+  <div v-else>
+    <p>Por favor, inicia sesión.</p>
   </div>
 </template>
 
 
   
-  <script>
-  import { defineComponent } from 'vue';
-  
-  export default defineComponent({
-    name: 'HomePage',
-    methods: {
-      goToPropiedades() {
-        this.$router.push('/propiedades');
-      },
-      goToCalendario() {
-        this.$router.push('/calendario');
-      }
+<script>
+import { defineComponent } from 'vue';
+import { mapGetters } from 'vuex';
+
+export default defineComponent({
+  name: 'HomePage',
+  computed: {
+    ...mapGetters(['user']),
+    isLoggedIn() {
+      return !!this.user;
     }
-  });
-  </script>
+  },
+  methods: {
+    goToPropiedades() {
+      this.$router.push('/propiedades');
+    },
+    goToRentas() {
+      this.$router.push('/rentas');
+    }
+  }
+});
+</script>
   
   <style>
 body {
@@ -44,13 +53,41 @@ body {
   color: #333;
 }
 
-.header {
-  font-size: 3em;
-  color: #2c3e50;
-  margin-bottom: 50px;
-  text-align: right; /* Centra el texto dentro del encabezado */
-  padding: 20px;
- 
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: #333;
+  color: #fff;
+}
+
+.logo-container {
+  flex: 1;
+}
+
+.logo {
+  height: 50px;
+}
+
+.navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 2;
+}
+
+.navigation a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.navigation a:hover {
+  background-color: #555;
 }
 
 .image-container {

@@ -9,11 +9,13 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "firebase": "^10.6.0",
+    "firebase": "^10.11.0",
     "git": "^0.1.5",
     "v-calendar": "^3.1.2",
     "vue": "^3.2.13",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vuefire": "^3.1.23",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
